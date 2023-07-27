@@ -1,4 +1,5 @@
 import csv
+import json
 import sys
 import logging
 
@@ -110,14 +111,15 @@ def remove_users(grafana_team, ldap_groups):
     :return: An array containing all users that need to be removed from the grafana-team.
     """
     grafana_users = get_members_of_team(grafana_team)
+    logger.info("Grafana users of team %s: %s", grafana_team, json.dumps(grafana_users))
     ldap_users = []
     for ldap_group in ldap_groups:
         users_of_group = get_users_of_group(ldap_group)
         for user in users_of_group:
-            if user not in ldap_users:
-                ldap_users.append(user)
+            if user["login"] not in ldap_users:
+                ldap_users.append(user["login"])
     for user in grafana_users:
-        if user not in ldap_users:
+        if user["login"] not in ldap_users:
             try:
                 remove_member_from_team(grafana_team, user["login"])
             except GrafanaClientError:
